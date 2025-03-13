@@ -1,17 +1,23 @@
-from flask import Blueprint, request
+import traceback
+
+from flask import Blueprint, request, jsonify
+from api.constants import ApiConstants
+from api.login import login_handler
 
 api = Blueprint('api', __name__)
 
 
 @api.route('/login', methods=['POST'])
 def login():
-    username = request.form['username']
-    password = request.form['password']
+    try:
+        response = login(request)
 
-    # Validate username and password (this is just a basic example)
-    user = mongo.db.users.find_one({'username': username})
-    if user and check_password_hash(user['password'], password):
-        session['username'] = username  # Store the username in session
-        return redirect(url_for('garage'))  # Redirect to the garage page
-    else:
-        return render_template('login.html', error="Invalid username or password.")
+        if response is None:
+            return ApiConstants.ERROR_NONE
+        if response.get("error") is not None:
+            return response
+
+        return response
+    except Exception as e:
+        print(traceback.format_exc())
+        return ApiConstants.ERROR_500
