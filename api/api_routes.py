@@ -1,23 +1,26 @@
 import traceback
-
 from flask import Blueprint, request, jsonify
+
 from api.constants import ApiConstants
-from api.login import login_handler
+from api.core.login import LoginHandler
 
 api = Blueprint('api', __name__)
 
 
-@api.route('/login', methods=['POST'])
+@api.post('/login')
 def login():
     try:
-        response = login(request)
+        username = request.form.get("username")
+        password = request.form.get("password")
+        if username is None or username == "" or password is None or password == "":
+            return jsonify({
+                "error": "Missing login or password"
+            }), 400
 
-        if response is None:
-            return ApiConstants.ERROR_NONE
-        if response.get("error") is not None:
-            return response
+        LoginHandler.authenticate(login, password)
 
-        return response
     except Exception as e:
         print(traceback.format_exc())
-        return ApiConstants.ERROR_500
+        return jsonify({
+            "error": ApiConstants.ERROR_500
+        }), 500
